@@ -22,7 +22,7 @@ do
    [ $I == "1" ] && ZONE=us-central1-a
    [ $I == "2" ] && ZONE=us-central1-b
    [ $I == "3" ] && ZONE=us-central1-f
-   gcloud compute disks create "masterI-docker" --size "50" --zone "$ZONE" --type "pd-standard" &
+   gcloud compute disks create "master$I-docker" --size "50" --zone "$ZONE" --type "pd-standard" &
 done
 
 for (( I=1; I<=$OCP_INFRA_COUNT; I++ ))

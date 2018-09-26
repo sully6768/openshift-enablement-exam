@@ -1,11 +1,8 @@
 #!/bin/bash
 
 set -e
-[  -z "$OCP_VERSION" ] && OCP_VERSION=3.10
-[  -z "$RHEL_VERSION" ] && RHEL_VERSION=`gcloud compute images list | awk '{print $1}' | grep rhel-7-v`
-[  -z "$OCP_MASTER_COUNT" ] && OCP_MASTER_COUNT=1
-[  -z "$OCP_INFRA_COUNT" ] && OCP_INFRA_COUNT=1
-[  -z "$OCP_NODE_COUNT" ] && OCP_NODE_COUNT=2
+
+source vars.sh
 
 DEFAULT_SCOPE="https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring.write","https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append","https://www.googleapis.com/auth/compute","https://www.googleapis.com/auth/devstorage.read_write"
 

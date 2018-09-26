@@ -32,7 +32,7 @@ openshift_examples_modify_imagestreams=true
 # use this to lookup the latest exact version of the container images, which is the tag actually used to configure
 # the cluster. For RPM installations we just verify the version detected in your configured repos matches this
 # release.
-openshift_release=v3.6
+openshift_release=vOCP_VERSION
 
 # Docker Configuration
 # Add additional, insecure, and blocked registries to global docker configuration

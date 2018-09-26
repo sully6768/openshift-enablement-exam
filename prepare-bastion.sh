@@ -1,16 +1,14 @@
-#!/bin/bash
+#!/bin/bash -xv
 
 set -e
+
+source vars.sh
+
 # set the ssh key
 cp $SSH_PUB_KEY ./my_id.pub
 a=`whoami`
 sed -i "s/^/$a:/" ./my_id.pub
 export BASTION_USERNAME=$a
-
-[  -z "$OCP_VERSION" ] && OCP_VERSION=3.10
-[  -z "$OCP_MASTER_COUNT" ] && OCP_MASTER_COUNT=1
-[  -z "$OCP_INFRA_COUNT" ] && OCP_INFRA_COUNT=1
-[  -z "$OCP_NODE_COUNT" ] && OCP_NODE_COUNT=2
 
 gcloud compute project-info add-metadata --metadata-from-file sshKeys=./my_id.pub
 
@@ -27,7 +25,7 @@ ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` 'su
 #subscribe
 ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` sudo subscription-manager register --username=$RHN_USERNAME --password=$RHN_PASSWORD
 # configure subscriptions
-ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sudo subscription-manager attach --pool=$RHN_SUB_POOL && sudo subscription-manager refresh && sudo subscription-manager repos --disable="*" && sudo subscription-manager repos --enable="rhel-7-server-rpms" --enable="rhel-7-server-optional-rpms" --enable="rhel-7-server-extras-rpms" --enable="rhel-7-server-ose-$OCP_VERSION-rpms" --enable="rhel-7-fast-datapath-rpms"'
+ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sudo subscription-manager attach --pool=$RHN_SUB_POOL && sudo subscription-manager refresh && sudo subscription-manager repos --disable="*" && sudo subscription-manager repos --enable="rhel-7-server-rpms" --enable="rhel-7-server-optional-rpms" --enable="rhel-7-server-extras-rpms" --enable="rhel-7-server-ose-3.10-rpms" --enable="rhel-7-fast-datapath-rpms"'
 #update install packages
 ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` 'sudo yum update -y && sudo yum install -y git ansible atomic-openshift-utils screen bind-utils atomic-openshift-clients openshift-ansible'
 # generate and add keys
@@ -43,18 +41,20 @@ gcloud compute project-info add-metadata --metadata-from-file sshKeys=./my_id.pu
 ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` git clone https://github.com/sully6768/openshift-enablement-exam
 
 # prepare hostfile
-ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/master.10.128.0.10.xip.io/mi.$DNS_DOMAIN/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
-ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/master.104.197.199.131.xip.io/master.$DNS_DOMAIN/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
-ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/apps.104.198.35.122.xip.io/apps.$DNS_DOMAIN/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
-ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/BASTION_USERNAME/$BASTION_USERNAME/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
+ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/master.10.128.0.10.xip.io/mi.'"$DNS_DOMAIN/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
+ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/master.104.197.199.131.xip.io/master.'"$DNS_DOMAIN"'/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
+ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/apps.104.198.35.122.xip.io/apps.'"$DNS_DOMAIN"'/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
+ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/BASTION_USERNAME/'"$BASTION_USERNAME"'/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
 ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/v3.6/$OCP_VERSION/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
-ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/master[1:3]/master[1:$OCP_MASTER_COUNT]/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
-ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/infranode[1:3]/infranode[1:$OCP_INFRA_COUNT]/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
-ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/node[1:3]/node[1:$OCP_NODE_COUNT]/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
+ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/^node\[1:3\]/node\[1:'"$OCP_MASTER_COUNT"'\]/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
+ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/^node\[1:3\]/node\[1:'"$OCP_INFRA_COUNT"'\]/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
+ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` -o SendEnv=RHN_USERNAME -o SendEnv=RHN_PASSWORD -o SendEnv=DNS_DOMAIN -o SendEnv=RHN_SUB_POOL -o SendEnv=BASTION_USERNAME 'sed -i "s/^node\[1:3\]/node\[1:'"$OCP_NODE_COUNT"'\]/g" /home/$BASTION_USERNAME/openshift-enablement-exam/hosts'
 
 
 #delete temporary key files
 rm id_rsa.pub my_id.pub
+
+unset BASTION_USERNAME
 
 #reboot
 ssh -t `gcloud compute addresses list | grep ose-bastion | awk '{print $3}'` 'sudo reboot'

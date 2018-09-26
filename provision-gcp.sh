@@ -13,9 +13,18 @@ gcloud config set project $GCLOUD_PROJECT
 
 ####################################################################################
 #
-# Create the docker disk storage for INFRA and NODE
+# Create the docker disk storage
 #
 ####################################################################################
+for (( I=1; I<=$OCP_MASTER_COUNT; I++ ))
+do
+   echo $I
+   [ $I == "1" ] && ZONE=us-central1-a
+   [ $I == "2" ] && ZONE=us-central1-b
+   [ $I == "3" ] && ZONE=us-central1-f
+   gcloud compute disks create "masterI-docker" --size "50" --zone "$ZONE" --type "pd-standard" &
+done
+
 for (( I=1; I<=$OCP_INFRA_COUNT; I++ ))
 do
    echo $I
@@ -56,6 +65,7 @@ do
      --service-account default\
      --scopes "$DEEFAULT_SCOPE"\
      --image-project "rhel-cloud"\
+     --disk "name=master$I-docker,device-name=disk-1,mode=rw,boot=no"\
      --image "$RHEL_VERSION"\
      --boot-disk-size "50"\
      --boot-disk-type "pd-standard"\

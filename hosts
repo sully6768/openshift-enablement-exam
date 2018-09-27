@@ -50,6 +50,8 @@ osm_default_node_selector='region=primary'
 
 # GCE
 openshift_cloudprovider_kind=gce
+openshift_gcp_project=ocp-demo
+openshift_gcp_prefix=ocp-demo1
 
 # Configure additional projects
 #openshift_additional_projects={'my-project': {'default_node_selector': 'label=value'}}
